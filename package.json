@@ -1,6 +1,6 @@
 {
   "name": "@eatsjobs/recorder-audio",
-  "private": "false",
+  "private": false,
   "version": "1.0.0",
   "description": "A simple audio recorder",
   "main": "dist/recorder.js",
