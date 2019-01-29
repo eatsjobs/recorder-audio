@@ -1,5 +1,6 @@
 {
-  "name": "recorder-audio",
+  "name": "@eatsjobs/recorder-audio",
+  "private": "false",
   "version": "1.0.0",
   "description": "A simple audio recorder",
   "main": "dist/recorder.js",
@@ -7,7 +8,7 @@
   "module": "dist/recorder.mjs",
   "source": "index.js",
   "scripts": {
-    "version": "yarn build && git add -A dist",
+    "version": "yarn build && git add -Af dist",
     "postversion": "git push && git push --tags",
     "build": "microbundle --entry recorder.js",
     "dev": "http-server . && microbundle --entry --compress=false recorder.js watch"
