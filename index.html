@@ -1,0 +1,26 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>Audio Recorder</title>
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+</head>
+
+<body>
+    <script type='module'>
+        import RecorderAudio from './dist/recorder.mjs';
+      
+        ;(async function init() {
+            const recorder = await new RecorderAudio();
+            recorder.start();
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            const { audio } = await recorder.stop();
+            audio.play();
+        })()
+    </script>
+</body>
+</html>

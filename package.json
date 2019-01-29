@@ -1,0 +1,25 @@
+{
+  "name": "recorder-audio",
+  "version": "1.0.0",
+  "description": "A simple audio recorder",
+  "main": "dist/recorder.js",
+  "umd:main": "dist/recorder.umd.js",
+  "module": "dist/recorder.mjs",
+  "source": "index.js",
+  "scripts": {
+    "version": "yarn build && git add -A dist",
+    "postversion": "git push && git push --tags",
+    "build": "microbundle --entry recorder.js",
+    "dev": "http-server . && microbundle --entry --compress=false recorder.js watch"
+  },
+  "files": [
+    "/dist"
+  ],
+  "keywords": ["html5", "audio"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^0.11.1",
+    "microbundle": "^0.9.0"
+  }
+}
