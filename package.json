@@ -11,7 +11,8 @@
     "version": "yarn build && git add -Af dist",
     "postversion": "git push && git push --tags",
     "build": "microbundle --entry recorder.js",
-    "dev": "http-server . && microbundle --entry --compress=false recorder.js watch"
+    "build:watch": "microbundle --entry --compress=false --watch recorder.js",
+    "dev": "http-server ."
   },
   "files": [
     "/dist"
