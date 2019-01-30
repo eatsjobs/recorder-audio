@@ -14,11 +14,12 @@ npm i recorder-audio
 ```
 <script type='module'>
     import RecorderAudio from './dist/recorder.mjs';
-
+    const delay = (time) => new Promise((resolve) => { setTimeout(resolve, time) });
     ;(async function init() {
-        const recorder = await new RecorderAudio();
+        const recorder = new RecorderAudio();
+        await recorder.init();
         recorder.start();
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        await delay(4000)
         const { audio, audioBlob, audioUrl } = await recorder.stop();
         audio.play();
     })()
