@@ -3,24 +3,113 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-
+  <meta name="viewport" content="width=device-width">
   <title>Audio Recorder</title>
   <meta name="description" content="">
   <meta name="author" content="">
+  <style>
+      @import "./node_modules/normalize.css/normalize.css";
 
+      .app {
+          font-family: Verdana, Geneva, Tahoma, sans-serif;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+      }
+
+      .audioList {
+        padding: 0;
+        margin: 0;
+        margin-top: 10px;
+      }
+
+      .audioListItem {
+        list-style-type: none;
+      }
+      .recButton {
+          padding: 5px 20px;
+          background: transparent;
+          color: black;
+          border: 1px solid black;
+          width: 200px;
+          transition: all 0.5s;
+          cursor: pointer;
+      }
+      
+      .recButton:disabled {
+        opacity: 0.3;
+      }
+
+      .recButton:hover,.recButton:active {
+        opacity: 0.8;
+      }
+  </style>
 </head>
 
 <body>
+    <div id='root'></div>
     <script type='module'>
+        import './node_modules/md-gum-polyfill/mediaDevices-getUserMedia-polyfill.js';
+        import { html, Component, render } from 'https://unpkg.com/htm/preact/standalone.mjs';
         import RecorderAudio from './dist/recorder.mjs';
-      
-        ;(async function init() {
-            const recorder = await new RecorderAudio();
-            recorder.start();
-            await new Promise(resolve => setTimeout(resolve, 3000));
-            const { audio } = await recorder.stop();
-            audio.play();
-        })()
+        const delay = (time) => new Promise((resolve) => { setTimeout(resolve, time) });
+        const recorderAudio = new RecorderAudio();
+        class App extends Component {
+            constructor() {
+                super();
+                this.handleRecording = this.handleRecording.bind(this);
+                this.state = {
+                    audioSources: [],
+                    isRecording: false,
+                    remaining: 0
+                }
+            }
+
+            componentDidMount() {
+                recorderAudio.init();
+            }
+
+            async handleRecording(evt) {
+                const remaining = 5000;
+                recorderAudio.start();
+                this.setState({ isRecording: true, remaining });
+                this.interval = setInterval(() => {
+                    this.setState((state, props) => {
+                        let remaining = state.remaining - 1000;
+                        if (remaining === 0) clearInterval(this.interval);
+                        return { remaining };
+                    });
+                }, 1000);
+                
+                await delay(remaining);
+                const { audio, audioBlob, audioUrl } = await recorderAudio.stop();
+                const audioSources = this.state.audioSources.slice();
+                audioSources.push(audioUrl);
+                this.setState({ audioSources, isRecording: false });
+            }
+
+            render({ }, { audioSources, isRecording, remaining }) {
+                return html`<div class='app'>
+                    <button class='recButton' onClick=${this.handleRecording} disabled=${isRecording}>
+                        ${isRecording ? `Recording...${remaining / 1000}` : 'Record'}
+                    </button>
+                    <ul class='audioList'>
+                        ${audioSources.map((src) => {
+                            return html`
+                                <li class='audioListItem'>
+                                    ${html`
+                                        <audio src=${src} controls />
+                                    `}
+                                </li>
+                            `;
+                        })}
+                    </ul>
+                </div>`;
+            }
+        }
+        render(html`<${App} />`, document.getElementById('root'));        
     </script>
 </body>
 </html>

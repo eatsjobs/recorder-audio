@@ -9,20 +9,12 @@ class Recorder {
     this.state = this.state.bind(this);
 
     this.audioChunks = [];
-    this.audioBlob = null;
-    this.audioUrl = null;
-    // audio element
-    this.audio = null;
     this.mediaRecorder = null;
-  }
 
-  _checkInit() {
-    if (!this.init) { console.warn('Call init first'); }
-    return false;
   }
 
   init() {
-    this.init = navigator.mediaDevices
+    return navigator.mediaDevices
       .getUserMedia({ audio: true })
       .then(stream => {
         this.mediaRecorder = new MediaRecorder(stream);
@@ -32,7 +24,6 @@ class Recorder {
       .catch(err => {
         console.log(err.message);
       });
-    return this.init;
   }
 
   onStart() {
@@ -60,21 +51,16 @@ class Recorder {
   }
 
   handleAudioChunks(event) {
-    
     this.audioChunks.push(event.data);
-    console.log(this.audioChunks);
   }
 
   start() {
-    this._checkInit();
-    return this.init.then(() => this.mediaRecorder.start());
+    this.audioChunks = [];
+    this.mediaRecorder.start();
   }
 
   state() {
-    if (this.init) {
-      return this.mediaRecorder.state;
-    }
-    return 'indeterminate';
+    return this.mediaRecorder.state;
   }
 
   dispose() {
@@ -88,22 +74,16 @@ class Recorder {
   }
 
   stop() {
-    this._checkInit();
     return new Promise((resolve, reject) => {
       this.mediaRecorder.addEventListener('stop', () => {
           const audioBlob = new Blob(this.audioChunks);
           const audioUrl = window.URL.createObjectURL(audioBlob);
           const audio = new Audio(audioUrl);
           const result = { audioBlob, audioUrl, audio };
-          console.log(result);
-          debugger
           resolve(result);
       });
       this.mediaRecorder.stop();
     });
-
   }
 }
-
-// singleton
-export default new Recorder
+export default Recorder
