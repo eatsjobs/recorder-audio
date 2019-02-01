@@ -60,6 +60,7 @@
             constructor() {
                 super();
                 this.handleRecording = this.handleRecording.bind(this);
+                this.startTimer = this.startTimer.bind(this);
                 this.state = {
                     audioSources: [],
                     isRecording: false,
@@ -71,10 +72,7 @@
                 recorderAudio.init();
             }
 
-            async handleRecording(evt) {
-                const remaining = 5000;
-                recorderAudio.start();
-                this.setState({ isRecording: true, remaining });
+            startTimer() {
                 this.interval = setInterval(() => {
                     this.setState((state, props) => {
                         let remaining = state.remaining - 1000;
@@ -82,6 +80,14 @@
                         return { remaining };
                     });
                 }, 1000);
+            }
+
+            async handleRecording(evt) {
+                const remaining = 4000;
+                this.setState({ isRecording: true, remaining }, () => {
+                    recorderAudio.start();
+                    this.startTimer();
+                });
                 
                 await delay(remaining);
                 const { audio, audioBlob, audioUrl } = await recorderAudio.stop();
