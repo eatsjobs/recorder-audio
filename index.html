@@ -51,6 +51,7 @@
 <body>
     <div id='root'></div>
     <script type='module'>
+        import './node_modules/audio-recorder-polyfill/index.js';
         import './node_modules/md-gum-polyfill/mediaDevices-getUserMedia-polyfill.js';
         import { html, Component, render } from 'https://unpkg.com/htm/preact/standalone.mjs';
         import RecorderAudio from './dist/recorder.mjs';
@@ -99,7 +100,7 @@
             render({ }, { audioSources, isRecording, remaining }) {
                 return html`<div class='app'>
                     <button class='recButton' onClick=${this.handleRecording} disabled=${isRecording}>
-                        ${isRecording ? `Recording...${remaining / 1000}` : 'Record'}
+                        ${isRecording ? `${remaining / 1000}` : 'Record'}
                     </button>
                     <ul class='audioList'>
                         ${audioSources.map((src) => {
