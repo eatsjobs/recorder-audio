@@ -29,11 +29,13 @@
         list-style-type: none;
       }
       .recButton {
-          padding: 5px 20px;
+          outline: none;
           background: transparent;
           color: black;
           border: 1px solid black;
-          width: 200px;
+          width: 100px;
+          height: 100px;
+          border-radius: 100%;
           transition: all 0.5s;
           cursor: pointer;
       }
@@ -51,72 +53,80 @@
 <body>
     <div id='root'></div>
     <script type='module'>
-        import './node_modules/audio-recorder-polyfill/index.js';
         import './node_modules/md-gum-polyfill/mediaDevices-getUserMedia-polyfill.js';
         import { html, Component, render } from 'https://unpkg.com/htm/preact/standalone.mjs';
         import RecorderAudio from './dist/recorder.mjs';
         const delay = (time) => new Promise((resolve) => { setTimeout(resolve, time) });
         const recorderAudio = new RecorderAudio();
         class App extends Component {
-            constructor() {
-                super();
-                this.handleRecording = this.handleRecording.bind(this);
-                this.startTimer = this.startTimer.bind(this);
-                this.state = {
-                    audioSources: [],
-                    isRecording: false,
-                    remaining: 0
+                constructor() {
+                    super();
+                    this.handleRecording = this.handleRecording.bind(this);
+                    this.startTimer = this.startTimer.bind(this);
+                    this.state = {
+                        audioSources: [],
+                        isRecording: false,
+                        remaining: 0
+                    }
+                }
+
+                componentDidMount() {
+                    
+                }
+
+                startTimer() {
+                    this.interval = setInterval(() => {
+                        this.setState((state, props) => {
+                            let remaining = state.remaining - 1000;
+                            if (remaining === 0) clearInterval(this.interval);
+                            return { remaining };
+                        });
+                    }, 1000);
+                }
+
+                async handleRecording(evt) {
+                    const remaining = 4000;
+
+                    await recorderAudio.start();
+                    this.setState({ isRecording: true, remaining }, () => {
+                        this.startTimer();
+                    });
+                    
+                    await delay(remaining);
+                    const { audio, audioBlob, audioUrl } = await recorderAudio.stop();
+                    const audioSources = this.state.audioSources.slice();
+                    audioSources.push(audioUrl);
+                    this.setState({ audioSources, isRecording: false });
+                }
+
+                render({ }, { audioSources, isRecording, remaining }) {
+                    return html`<div class='app'>
+                        <button class='recButton' onClick=${this.handleRecording} disabled=${isRecording}>
+                            ${isRecording ? `${remaining / 1000}` : 'Record'}
+                        </button>
+                        <ul class='audioList'>
+                            ${audioSources.map((src) => {
+                                return html`
+                                    <li class='audioListItem'>
+                                        ${html`
+                                            <audio src=${src} controls />
+                                        `}
+                                    </li>
+                                `;
+                            })}
+                        </ul>
+                    </div>`;
                 }
             }
 
-            componentDidMount() {
-                recorderAudio.init();
-            }
-
-            startTimer() {
-                this.interval = setInterval(() => {
-                    this.setState((state, props) => {
-                        let remaining = state.remaining - 1000;
-                        if (remaining === 0) clearInterval(this.interval);
-                        return { remaining };
-                    });
-                }, 1000);
-            }
-
-            async handleRecording(evt) {
-                const remaining = 4000;
-                this.setState({ isRecording: true, remaining }, () => {
-                    recorderAudio.start();
-                    this.startTimer();
-                });
+            (async function() {
                 
-                await delay(remaining);
-                const { audio, audioBlob, audioUrl } = await recorderAudio.stop();
-                const audioSources = this.state.audioSources.slice();
-                audioSources.push(audioUrl);
-                this.setState({ audioSources, isRecording: false });
-            }
-
-            render({ }, { audioSources, isRecording, remaining }) {
-                return html`<div class='app'>
-                    <button class='recButton' onClick=${this.handleRecording} disabled=${isRecording}>
-                        ${isRecording ? `${remaining / 1000}` : 'Record'}
-                    </button>
-                    <ul class='audioList'>
-                        ${audioSources.map((src) => {
-                            return html`
-                                <li class='audioListItem'>
-                                    ${html`
-                                        <audio src=${src} controls />
-                                    `}
-                                </li>
-                            `;
-                        })}
-                    </ul>
-                </div>`;
-            }
-        }
-        render(html`<${App} />`, document.getElementById('root'));        
+                if (!window.MediaRecorder) {
+                    const MediaRecorderPolyfill = await import('./node_modules/audio-recorder-polyfill/dist/audio-polyfill.mjs');
+                    window.MediaRecorder = MediaRecorderPolyfill.default;
+                }
+                render(html`<${App} />`, document.getElementById('root'));
+            })();
     </script>
 </body>
 </html>

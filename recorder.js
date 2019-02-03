@@ -2,19 +2,23 @@ class Recorder {
   constructor(options = {}) {
     this.start = this.start.bind(this);
     this.stop = this.stop.bind(this);
+    
+    this.onStop = this.onStop.bind(this);
+    this.onPause = this.onPause.bind(this);
+    this.onResume = this.onResume.bind(this);
     this.addListeners = this.addListeners.bind(this);
+    
     this.handleAudioChunks = this.handleAudioChunks.bind(this);
-    this.dispose = this.dispose.bind(this);
     this.init = this.init.bind(this);
-    this.state = this.state.bind(this);
-
+    //this.state = this.state.bind(this);
+    
     this.audioChunks = [];
     this.mediaRecorder = null;
-
+    this.initPromise = null;
   }
 
   init() {
-    return navigator.mediaDevices
+    this.initPromise = navigator.mediaDevices
       .getUserMedia({ audio: true })
       .then(stream => {
         this.mediaRecorder = new MediaRecorder(stream);
@@ -24,30 +28,31 @@ class Recorder {
       .catch(err => {
         console.log(err.message);
       });
+    return this.initPromise;
   }
 
   onStart() {
-
+    console.log('start')
   }
 
   onStop() {
-
+    console.log('stop')
   }
 
   onPause() {
-
+    console.log('pause')
   }
 
   onResume() {
-
+    console.log('resume')
   }
   
   addListeners() {
     this.mediaRecorder.addEventListener('dataavailable', this.handleAudioChunks);
-    /*this.mediaRecorder.addEventListener('start', this.onStart);
+    this.mediaRecorder.addEventListener('start', this.onStart);
     this.mediaRecorder.addEventListener('stop', this.onStop);
     this.mediaRecorder.addEventListener('pause', this.onPause);
-    this.mediaRecorder.addEventListener('resume', this.onResume);*/
+    this.mediaRecorder.addEventListener('resume', this.onResume);
   }
 
   handleAudioChunks(event) {
@@ -56,21 +61,22 @@ class Recorder {
 
   start() {
     this.audioChunks = [];
-    this.mediaRecorder.start();
+    if (!this.initPromise) {
+      return this.init()
+        .then(() => {
+          this.mediaRecorder.start();
+          return this.mediaRecorder;
+        });
+    } else {
+      return this.initPromise.then(() => {
+        this.mediaRecorder.start();
+        return this.mediaRecorder;
+      });
+    }
   }
 
-  state() {
-    return this.mediaRecorder.state;
-  }
-
-  dispose() {
-    this.audioBlob = null;
-    // URL.revokeObjectURL(this.audioUrl);
-    this.audioUrl = null;
-    this.audio = null;
-    this.mediaRecorder = null;
-    this.audioChunks = [];
-    this.init = null;
+  get state() {
+    return this.mediaRecorder ? this.mediaRecorder.state : 'inactive';
   }
 
   stop() {

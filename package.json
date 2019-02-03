@@ -11,7 +11,7 @@
     "version": "yarn build && git add -Af dist",
     "postversion": "git push && git push --tags",
     "build": "microbundle --entry recorder.js",
-    "build:watch": "microbundle --entry --compress=false --watch recorder.js",
+    "build:watch": "microbundle --entry recorder.js --compress false --watch",
     "dev": "http-server ."
   },
   "files": [
@@ -31,7 +31,6 @@
     "normalize.css": "^8.0.1"
   },
   "peerDependencies": {
-    "md-gum-polyfill": "^1.0.0",
     "audio-recorder-polyfill": "^0.1.3"
   }
 }
